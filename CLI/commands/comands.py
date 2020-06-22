@@ -4,6 +4,7 @@ from .exit import exit_command
 from .pwd import pwd
 from .unknown import unknown
 from .wc import wc
+from .grep import grep
 
 from environment_processor import EnvironmentProcessor
 
@@ -17,6 +18,7 @@ def get_command_by_name(name: str) -> Callable[[BinaryIO, BinaryIO, EnvironmentP
         'echo': echo,
         'exit': exit_command,
         'pwd': pwd,
-        'wc': wc
+        'wc': wc,
+        'grep': grep
     }
     return commands.get(name, unknown)

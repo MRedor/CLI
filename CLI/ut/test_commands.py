@@ -9,6 +9,7 @@ from typing import Callable, BinaryIO, List
 
 Command = Callable[[BinaryIO, BinaryIO, EnvironmentProcessor, List[str]], None]
 
+
 def run_and_get_result(cmd: Command, stdin_bytes: bytes, argv: List[str]) -> bytes:
     """
     Run cmd(BytesIO(stdin_str), stdout, env, argv) and return stdout.getvalue()
@@ -24,7 +25,9 @@ def run_and_get_result(cmd: Command, stdin_bytes: bytes, argv: List[str]) -> byt
     cmd(stdin, stdout, env, argv)
     return stdout.getvalue()
 
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class CatCommandTests(unittest.TestCase):
 
@@ -95,12 +98,31 @@ class EchoTests(unittest.TestCase):
         echo = get_command_by_name('echo')
         self.assertEqual(run_and_get_result(echo, b'', ['echo', 'one  two', "three  four", '  five']), b'one  two three  four   five')
 
+
 class PwdTests(unittest.TestCase):
     # тут как то тупо тестить. позову pwd и сравню с тем что питон говорит. но внутри pwd этоработает ровно так же
     def test_strange(self):
         pwd = get_command_by_name('pwd')
         real_path = os.getcwd()
         self.assertEqual(run_and_get_result(pwd, b'', ['pwd']), real_path.encode() + b'\n')
+
+
+class GrepTests(unittest.TestCase):
+    def test_simple(self):
+        grep = get_command_by_name('grep')
+        self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', 'sum']), b'sum\ntsum')
+        self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', '-i', 'sUm']), b'sum\ntsum')
+        self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', '-w', 'sum']), b'sum\n')
+        self.assertEqual(run_and_get_result(grep, b'1\n2\n3\n4\n', ['grep', '-A', '1', '[1-2]']), b'1\n2\n3\n')
+
+    def test_empty(self):
+        grep = get_command_by_name('grep')
+        empty = str(os.path.join(THIS_DIR, 'test_data', 'empty.txt'))
+        ut = str(os.path.join(THIS_DIR, 'test_data', 'unittest_doc.txt'))
+        self.assertEqual(run_and_get_result(grep, b'', ['grep', 'sum']), b'')
+        self.assertEqual(run_and_get_result(grep, b'tum', ['grep', 'sum']), b'')
+        self.assertEqual(run_and_get_result(grep, b'', ['grep', 'sum', empty]), b'')
+        self.assertNotEqual(run_and_get_result(grep, b'', ['grep', 'test', ut]), b'')
 
 if __name__ == '__main__':
     unittest.main()
