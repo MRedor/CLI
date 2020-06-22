@@ -113,6 +113,7 @@ class GrepTests(unittest.TestCase):
         self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', 'sum']), b'sum\ntsum')
         self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', '-i', 'sUm']), b'sum\ntsum')
         self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', '-w', 'sum']), b'sum\n')
+        self.assertEqual(run_and_get_result(grep, b'add\nsum\ntsum', ['grep', '-w', 'su']), b'')
         self.assertEqual(run_and_get_result(grep, b'1\n2\n3\n4\n', ['grep', '-A', '1', '[1-2]']), b'1\n2\n3\n')
 
     def test_empty(self):

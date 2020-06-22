@@ -5,8 +5,17 @@ from typing import BinaryIO
 from environment_processor import EnvironmentProcessor
 
 
+class ArgumentParserError(Exception):
+    pass
+
+
+class ThrowingArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ArgumentParserError(message)
+
+
 def parse_arguments(args: [str]):
-    parser = argparse.ArgumentParser()
+    parser = ThrowingArgumentParser()
     parser.add_argument('-i', default=False, action='store_true')
     parser.add_argument('-w', default=False, action='store_true')
     parser.add_argument('-A', default=0, type=int)
@@ -25,11 +34,10 @@ def check_line(line: str, pattern: str, i: bool, w:bool) -> bool:
     :return: True - подходит, False - нет
     """
     parts = [line] if not w else re.split(r'[^\w\d_]+', line)
-    # print(parts)
     find_func = re.match if w else re.search
     for part in parts:
         march = find_func(pattern, part, re.IGNORECASE) if i else find_func(pattern, part)
-        if march and (not w or march.string == part):
+        if march and (not w or str(march.group(0)) == part):
             return True
     return False
 
@@ -44,7 +52,17 @@ def grep(stdin: BinaryIO, stdout: BinaryIO, env: EnvironmentProcessor, argv: [st
     """
     if env.exit:
         return
-    args = parse_arguments(argv[1:])
+
+    try:
+        args = parse_arguments(argv[1:])
+    except ArgumentParserError as ex:
+        stdout.write(b'ERROR:' + str(ex).encode() + b'\n')
+        return
+
+    if args.A < 0:
+        stdout.write(b'-A VAL: VAL must be positive\n')
+        return
+
     need_to_close = False
     if args.file:
         need_to_close = True

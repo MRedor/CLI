@@ -5,7 +5,7 @@ from io import BytesIO
 from environment_processor import EnvironmentProcessor
 
 from commands.comands import get_command_by_name
-from shell.magic import magic
+from shell.magic import magic_strong
 
 
 def line(expr: Union[Tree, Tree], stdin: BinaryIO, stdout: BinaryIO, env: EnvironmentProcessor) -> None:
@@ -71,9 +71,10 @@ def declaration(expr: Union[Tree, Tree], env: EnvironmentProcessor) -> None:
 
 def str_tree_to_str(str_tree: Tree, env: EnvironmentProcessor) -> str:
     result_str = ''
+    # print(str_tree)
     for child in str_tree.children:
         if child.data == 'lq':
-            result_str += magic(str(child.children[0])[1:-1], env)
+            result_str += magic_strong(str(child.children[0])[1:-1], env)
         elif child.data == 'sq':
             result_str += str(child.children[0])[1:-1]
         elif child.data == 'word':

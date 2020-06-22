@@ -4,7 +4,7 @@ from lark import Lark
 from lark.tree import Tree
 from typing import Union
 
-from shell.magic import magic
+from shell.magic import magic_light
 
 LINE_GRAMMAR = r"""
 start: line | empty
@@ -29,13 +29,15 @@ sq: /'([^'\\]?(\\.)?(\\')?)*'/
 empty: /\s+/
 """
 
+
 def parse_string(line):
     lark = Lark(LINE_GRAMMAR)
     return lark.parse(line)
 
+
 def parse_shell_line(line: str, env: EnvironmentProcessor) -> Union[Tree, Tree]:
     # парсим переменные и заменяем их значениями.
-    line_without_vars = magic(line, env)
+    line_without_vars = magic_light(line, env)
     # строим дерево
     return parse_string(line_without_vars)
 

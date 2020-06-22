@@ -1,4 +1,5 @@
 from environment_processor import EnvironmentProcessor
+from lark import LarkError
 
 from shell.parser import parse_shell_line
 from shell.runner import run
@@ -22,8 +23,13 @@ class Shell:
         try:
             stdin = BytesIO()
             stdout = BytesIO()
-            expr = parse_shell_line(line, self.env)
-            run(expr, stdin, stdout, self.env)
+            try:
+                expr = parse_shell_line(line, self.env)
+                run(expr, stdin, stdout, self.env)
+            except LarkError as _:
+                self.stdout.write("parsing crashed!\n")
+            except Exception as _:
+                self.stdout.write("smth went wrong!\n")
             self.stdout.write(stdout.getvalue().decode())
         except Exception as exception:
             self.stdout.write(str(exception))
